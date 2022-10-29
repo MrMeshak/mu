@@ -9,3 +9,126 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id       String @id @default(uuid())
+  email    String @unique
+  password String
+
+  firstname   String
+  lastname    String
+  dateOfBirth DateTime
+  gender      DateTime
+  phone       String
+
+  profileImg String @default("defaultImg")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  addresses      Address[]
+  orders         Order[]
+  reviews        Review[]
+  upVotedReviews Review[]  @relation("UserUpvotedReviews")
+}
+
+model Address {
+  id   String @id @default(uuid())
+  name String
+
+  streetAddress  String
+  streetAddress2 String
+  city           String
+  state          String
+  postCode       String
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  orders        Order[]
+  ordersBilling Order[] @relation("OrderBillingAddress")
+}
+
+model Product {
+  id String @id @default(uuid())
+
+  name        String
+  category    String
+  description String
+  images      String[]
+  price       Int
+
+  reviewCount   Int
+  reviewAverage Int
+
+  item Item[]
+}
+
+model Item {
+  id String @id @default(uuid())
+
+  color String
+
+  stock Int
+  sales Int
+
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+
+  orderItem OrderItem[]
+}
+
+model OrderItem {
+  id String @id @default(uuid())
+
+  quantity Int
+
+  item   Item   @relation(fields: [itemId], references: [id])
+  itemId String
+
+  order   Order  @relation(fields: [orderId], references: [id])
+  orderId String
+}
+
+model Order {
+  id String @id @default(uuid())
+
+  orderStatus String
+
+  paymentStatus String
+  paymentMethod String
+  totalCost     Int
+  discount      Int
+
+  shippingStatus String
+  shippingMethod String
+  shippingCost   Int
+
+  promoCode String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  shippingAddress Address @relation(fields: [AddressId], references: [id])
+  AddressId       String
+
+  billingAddress   Address @relation("OrderBillingAddress", fields: [billingAddressId], references: [id])
+  billingAddressId String
+
+  orderItems OrderItem[]
+}
+
+model Review {
+  id String @id @default(uuid())
+
+  rating      Int
+  description String
+
+  author   User   @relation(fields: [authorId], references: [id])
+  authorId String
+
+  upVoteList User[] @relation("UserUpvotedReviews")
+}
